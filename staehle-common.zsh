@@ -51,4 +51,8 @@ alias gka='gitk --all &'
 # often fudge this
 alias gti='git'
 
+# Machine-local configuration
+if [ -f "${HOME}/.zshlocal" ]; then
+  source "${HOME}/.zshlocal"
+fi
 
