@@ -35,8 +35,10 @@ set -e
 
 # Default settings
 ZSH=${ZSH:-~/.oh-my-zsh}
-REPO=${REPO:-ohmyzsh/ohmyzsh}
+REPO=${REPO:-staehle/ohmyzsh}
+REPO_STAEHLE=staehle/ohmyzsh
 REMOTE=${REMOTE:-https://github.com/${REPO}.git}
+REMOTE_STAEHLE=git@github.com:staehle/ohmyzsh.git
 BRANCH=${BRANCH:-master}
 
 # Other options
@@ -44,6 +46,7 @@ CHSH=${CHSH:-yes}
 RUNZSH=${RUNZSH:-yes}
 KEEP_ZSHRC=${KEEP_ZSHRC:-no}
 
+ZSHLOCAL="$ZSH/zshlocal-sample"
 
 command_exists() {
 	command -v "$@" >/dev/null 2>&1
@@ -93,6 +96,30 @@ setup_ohmyzsh() {
 		exit 1
 	fi
 
+	set -e
+
+	if [ "$REPO" = "${REPO_STAEHLE}" ]; then
+		echo "${BLUE}Cloning from Staehle git: ${REMOTE_STAEHLE}${RESET}"
+		git clone -c core.eol=lf -c core.autocrlf=false \
+		-c fsck.zeroPaddedFilemode=ignore \
+		-c fetch.fsck.zeroPaddedFilemode=ignore \
+		-c receive.fsck.zeroPaddedFilemode=ignore \
+		--branch "$BRANCH" "$REMOTE_STAEHLE" "$ZSH" || {
+			error "git clone of oh-my-zsh repo failed"
+			exit 1
+		}
+
+		if [ ! -e ~/.zshlocal ]; then
+			echo "${YELLOW}No zshlocal found -- copying sample${RESET}"
+			if [ -f "${ZSHLOCAL}" ]; then
+				cp -f "${ZSHLOCAL}" ~/.zshlocal
+			else
+				echo "Error: No ${ZSHLOCAL} file exists!"
+			fi
+		else
+			echo "${YELLOW}Not overwriting existing ~/.zshlocal${RESET}"
+		fi
+	else
 	git clone -c core.eol=lf -c core.autocrlf=false \
 		-c fsck.zeroPaddedFilemode=ignore \
 		-c fetch.fsck.zeroPaddedFilemode=ignore \
@@ -101,6 +128,9 @@ setup_ohmyzsh() {
 		error "git clone of oh-my-zsh repo failed"
 		exit 1
 	}
+	fi
+
+	set +e
 
 	echo
 }
